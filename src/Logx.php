@@ -81,17 +81,17 @@ class Logx
         return true;
     }
 
-    private function setPutParameter($level,$arguments, $backtrace)
+    private function setPutParameter($level, $arguments, $backtrace)
     {
-        if (ends_with($backtrace[0]['file'],'Illuminate/Support/Facades/Facade.php'))
+        if (ends_with($backtrace[0]['file'], 'Illuminate/Support/Facades/Facade.php'))
         {
-            $backtrace_line = $backtrace[1]; // 哪一行调用的log方法
-            $backtrace_call = $backtrace[2]; // 谁调用的log方法
+            $backtrace_line = $backtrace[1]; // line
+            $backtrace_call = $backtrace[2]; // function
         }
         else
         {
-            $backtrace_line = $backtrace[0]; // 哪一行调用的log方法
-            $backtrace_call = $backtrace[1]; // 谁调用的log方法
+            $backtrace_line = $backtrace[0]; // line
+            $backtrace_call = $backtrace[1]; // function
         }
 
         $line   = $backtrace_line['line'];
@@ -169,7 +169,7 @@ class Logx
     {
         try
         {
-            $level = $data['level'];
+            $level  = $data['level'];
             $logger = new Logger('logx');
 
             $logFormat = "[%datetime%]%message%\n\n";
@@ -188,18 +188,18 @@ class Logx
                 $handler = new StreamHandler($logFile);
             }
 
-            //设定显示模式
+            // format
             $handler->setFormatter($formatter);
 
-            //清除之前的handler数据
+            // handler
             if (!empty($logger->getHandlers()))
             {
                 $logger->popHandler();
             }
-            //设置新的handler
+            // set handler
             $logger->pushHandler($handler);
 
-            //写入数据
+            // put log
             $message = $this->getMessage($data);
             $logger->{$level}($message);
         }
