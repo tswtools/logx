@@ -1,7 +1,7 @@
 {
     "name": "tswtools/logx",
     "description": "Output log to file",
-    "license": "license",
+    "license": "MIT",
     "authors": [
         {
             "name": "tswtools",
@@ -9,7 +9,7 @@
             "homepage": "author homepage"
         }
     ],
-    "homepage": "https://github.com/tswtools/logx",
+    "homepage": "https://github.com/tswtools",
     "keywords": ["Laravel", "Logx"],
     "require": {
         "illuminate/support": "5.6.*|5.7.*|5.8.*"
