@@ -6,10 +6,10 @@
         {
             "name": "tswtools",
             "email": "tswtools@163.com",
-            "homepage": "author homepage"
+            "homepage": "https://github.com/tswtools"
         }
     ],
-    "homepage": "https://github.com/tswtools",
+    "homepage": "https://github.com/tswtools/logx",
     "keywords": ["Laravel", "Logx"],
     "require": {
         "illuminate/support": "5.6.*|5.7.*|5.8.*"
