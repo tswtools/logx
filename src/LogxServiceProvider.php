@@ -13,7 +13,6 @@ class LogxServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Publishing is only necessary when using the CLI.
         if ($this->app->runningInConsole()) {
             $this->bootForConsole();
         }
@@ -28,7 +27,6 @@ class LogxServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../config/logx.php', 'logx');
 
-        // Register the service the package provides.
         $this->app->singleton('logx', function ($app) {
             return new Logx;
         });
@@ -51,7 +49,6 @@ class LogxServiceProvider extends ServiceProvider
      */
     protected function bootForConsole(): void
     {
-        // Publishing the configuration file.
         $this->publishes([
             __DIR__.'/../config/logx.php' => config_path('logx.php'),
         ], 'logx.config');
