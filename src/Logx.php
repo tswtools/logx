@@ -83,8 +83,16 @@ class Logx
 
     private function setPutParameter($level,$arguments, $backtrace)
     {
-        $backtrace_line = $backtrace[1]; // 哪一行调用的log方法
-        $backtrace_call = $backtrace[2]; // 谁调用的log方法
+        if (ends_with($backtrace[0]['file'],'Illuminate/Support/Facades/Facade.php'))
+        {
+            $backtrace_line = $backtrace[1]; // 哪一行调用的log方法
+            $backtrace_call = $backtrace[2]; // 谁调用的log方法
+        }
+        else
+        {
+            $backtrace_line = $backtrace[0]; // 哪一行调用的log方法
+            $backtrace_call = $backtrace[1]; // 谁调用的log方法
+        }
 
         $line   = $backtrace_line['line'];
         $method = $backtrace_call['function'];
