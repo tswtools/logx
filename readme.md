@@ -21,6 +21,21 @@ Then run these commands to publish assets and config：
 php artisan vendor:publish --provider="Tswtools\Logx\LogxServiceProvider" 
 ```
 
+#Config
+``` bash
+Specify the IP address that can be recorded
+config/logx/ip:
+include : x.x.x.x
+exclude : x.x.x.x
+
+Specify the class or method that can be recorded
+config/logx/method:
+include : XxxxController,XyyyController::*,*::index,show
+exclude : XxxxController,XxxxController::*,*::index,show
+
+'*' means that every class or method  is OK
+```
+
 ## Change log
 
 Please see the [changelog](changelog.md) for more information on what has changed recently.
