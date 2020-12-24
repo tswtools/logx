@@ -5,7 +5,7 @@
 [![Build Status][ico-travis]][link-travis]
 
 
-This is where your description should go. Take a look at [contributing.md](contributing.md) to see a to do list.
+Output log to file for laravel. Take a look at [contributing.md](contributing.md) to see a to do list.
 
 ## Installation
 
@@ -35,7 +35,7 @@ If you discover any security related issues, please email author email instead o
 
 ## Credits
 
-- [author name][link-author]
+- [twstools][link-author]
 - [All Contributors][link-contributors]
 
 ## License
