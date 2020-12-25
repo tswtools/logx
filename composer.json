@@ -1,6 +1,6 @@
 {
     "name": "tswtools/logx",
-    "description": "Output log to file",
+    "description": "Display the class name and method name in the laravel log",
     "license": "MIT",
     "authors": [
         {
