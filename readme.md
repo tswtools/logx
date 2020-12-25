@@ -37,7 +37,10 @@ exclude : XxxxController,XxxxController::*,*::index,show
 '*' means that every class or method  is OK
 ```
 
-## example
+## log format
+[time][ip][class::method][line] log text.
+
+example:
 ``` bash
 [2020-12-25 13:09:50][127.0.0.1[TestController::index][26] "data1":{"a":1,"b":2}
 [2020-12-25 13:10:36][127.0.0.1[TestController::index][25] "data2":[{"a":1,"b":2}]
