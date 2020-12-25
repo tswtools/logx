@@ -9,22 +9,109 @@ use Monolog\Formatter\LineFormatter;
 
 class Logx
 {
-    private $levels = ['debug','info','notice','warning','error','critical','alert','emergency'];
+    public static $msInstance = null;
 
-    public function __call($level, $arguments)
+    public $mLogger          = null;
+    public $mFormatter       = null;
+    public $mRotatingHandler = [];
+    public $mStreamHandler   = [];
+
+    private $levels = ['debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'];
+
+    private $mEnable        = true;
+    private $mDaily         = 1;
+    private $mIpInclude     = [];
+    private $mIpExclude     = [];
+    private $mMethodInclude = [];
+    private $mMethodExclude = [];
+    private $mLevel         = '';
+    private $mIp            = '';
+    private $mMethod        = '';
+    private $mClass         = '';
+    private $mLine          = 0;
+    private $mMessage       = 0;
+
+    public static function __callStatic($level, $arguments)
     {
         try
         {
-            if (config("logx.enable"))
+            if(!self::$msInstance)
             {
-                if (in_array($level, $this->levels))
+                self::$msInstance = new static();
+                self::$msInstance->mLogger = new Logger('xlogger');
+                if (!self::$msInstance->mFormatter)
                 {
-                    $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
-                    $data      = $this->setPutParameter($level, $arguments, $backtrace);
-                    if ($this->isValidData($data))
-                    {
-                        $this->writeLog($data);
-                    }
+                    $logFormat = "[%datetime%]%message%\n";
+                    self::$msInstance->mFormatter = new LineFormatter($logFormat);;
+                }
+
+                self::$msInstance->setConfig();
+            }
+
+            self::$msInstance->mLevel = $level;
+
+            if (self::$msInstance->mEnable && in_array($level,self::$msInstance->levels))
+            {
+                self::$msInstance->setLoger();
+
+                $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
+                self::$msInstance->setParameter($arguments, $backtrace);;
+                if (self::$msInstance->isValidData())
+                {
+                    $ip      = self::$msInstance->mIp;
+                    $class   = self::$msInstance->mClass;
+                    $method  = self::$msInstance->mMethod;
+                    $line    = self::$msInstance->mLine;
+                    $message = self::$msInstance->mMessage;
+
+                    $message = "[{$ip}[{{$class}::{{$method}][{{$line}] " . $message;
+                    self::$msInstance->mLogger->{$level}($message);
+                }
+
+            }
+        }
+        catch (\Exception $e)
+        {
+        }
+    }
+
+    private function setConfig()
+    {
+        $this->mEnable        = config("logx.enable");
+        $this->mDaily         = config("logx.daily");
+        $this->mIpInclude     = config("logx.ip.include");
+        $this->mIpExclude     = config("logx.ip.exclude");
+        $this->mMethodInclude = config("logx.method.include");
+        $this->mMethodExclude = config("logx.method.exclude");
+        $this->mIp            = $this->getClientIp();
+    }
+
+    private function setLoger()
+    {
+        try
+        {
+            $logFile  = storage_path(). "/logs/{$this->mLevel}.log";
+
+            if($this->mDaily > 0)
+            {
+                if(!isset($this->mRotatingHandler[$this->mLevel]))
+                {
+                    $handler = new RotatingFileHandler($logFile);
+                    $handler->setFormatter($this->mFormatter);
+
+                    $this->mRotatingHandler[$this->mLevel] = $handler;
+                    $this->mLogger->setHandlers([$handler]);
+                }
+            }
+            else
+            {
+                if(!isset($this->mStreamHandler[$this->mLevel]))
+                {
+                    $handler = new StreamHandler($logFile);
+                    $handler->setFormatter($this->mFormatter);
+
+                    $this->mStreamHandler[$this->mLevel] = $handler;
+                    $this->mLogger->setHandlers([$handler]);
                 }
             }
         }
@@ -33,47 +120,44 @@ class Logx
         }
     }
 
-    private function isValidData($data)
+    private function __clone(){}
+    private function __construct(){}
+
+    private function isValidData()
     {
-        $ipInclude = config('logx.ip.include');
-        $ipExclude = config('logx.ip.exclude');
-
-        $methodInclude = config('logx.method.include');
-        $methodExclude = config('logx.method.exclude');
-
-        if ($ipInclude && !in_array($data['ip'], $ipInclude))
+        if ($this->mIpInclude && !in_array($this->mIp, $this->mIpInclude))
         {
             return false;
         }
 
-        if ($ipExclude && in_array($data['ip'], $ipExclude))
+        if ($this->mIpExclude && in_array($this->mIp, $this->mIpExclude))
         {
             return false;
         }
 
-        $class  = $data['class'];
-        $method = $data['method'];
+        $class  = $this->mClass;
+        $method = $this->mMethod;
 
         $classAll    = "*::{$method}";
         $methodAll   = "{$class}::*";
         $classMethod = "{$class}::{$method}";
 
-        if ($methodInclude && !(
-                in_array($class, $methodInclude) ||
-                in_array($method, $methodInclude) ||
-                in_array($classAll, $methodInclude) ||
-                in_array($methodAll, $methodInclude) ||
-                in_array($classMethod, $methodInclude)))
+        if ($this->mMethodInclude && !(
+                in_array($class, $this->mMethodInclude) ||
+                in_array($method, $this->mMethodInclude) ||
+                in_array($classAll, $this->mMethodInclude) ||
+                in_array($methodAll, $this->mMethodInclude) ||
+                in_array($classMethod, $this->mMethodInclude)))
         {
             return false;
         }
 
-        if ($methodExclude && (
-                in_array($class, $methodExclude) ||
-                in_array($method, $methodExclude) ||
-                in_array($classAll, $methodExclude) ||
-                in_array($methodAll, $methodExclude) ||
-                in_array($classMethod, $methodExclude)))
+        if ($this->mMethodExclude && (
+                in_array($class, $this->mMethodExclude) ||
+                in_array($method, $this->mMethodExclude) ||
+                in_array($classAll, $this->mMethodExclude) ||
+                in_array($methodAll, $this->mMethodExclude) ||
+                in_array($classMethod, $this->mMethodExclude)))
         {
             return false;
         }
@@ -81,18 +165,10 @@ class Logx
         return true;
     }
 
-    private function setPutParameter($level, $arguments, $backtrace)
+    private function setParameter($arguments, $backtrace)
     {
-        if (ends_with($backtrace[0]['file'], 'Illuminate/Support/Facades/Facade.php'))
-        {
-            $backtrace_line = $backtrace[1]; // line
-            $backtrace_call = $backtrace[2]; // function
-        }
-        else
-        {
-            $backtrace_line = $backtrace[0]; // line
-            $backtrace_call = $backtrace[1]; // function
-        }
+        $backtrace_line = array_shift($backtrace);
+        $backtrace_call = array_shift($backtrace);
 
         $line   = $backtrace_line['line'];
         $method = $backtrace_call['function'];
@@ -101,17 +177,17 @@ class Logx
         $classArray = explode("\\",$classFull);
         $class = end($classArray) ?: '';
 
-        $ip = $this->getClientIp();
+        $argumentStr = [];
+        foreach ($arguments as $argument)
+        {
+            $argumentStr[] = json_encode($argument, JSON_UNESCAPED_UNICODE);
+        }
+        $message = join($argumentStr, ':');
 
-        $message = $this->geFormatArguments($arguments);
-        return [
-            'level'   => $level,
-            'line'    => $line,
-            'method'  => $method,
-            'class'   => $class,
-            'ip'      => $ip,
-            'message' => $message
-        ];
+        $this->mLine    = $line;
+        $this->mMethod  = $method;
+        $this->mClass   = $class;
+        $this->mMessage = $message;
     }
 
     private function getClientIp()
@@ -139,72 +215,5 @@ class Logx
         }
 
         return $cip;
-    }
-
-    private function geFormatArguments($arguments)
-    {
-        $argumentStr = [];
-        foreach ($arguments as $argument)
-        {
-            $argumentStr[] = json_encode($argument, JSON_UNESCAPED_UNICODE);
-        }
-
-        return join($argumentStr, ':');
-    }
-
-    private function getMessage($data)
-    {
-        $class   = $data['class'];
-        $method  = $data['method'];
-        $line    = $data['line'];
-        $ip      = $data['ip'];
-        $message = $data['message'];
-
-        $message = "[$ip][{$class}::{$method}][{$line}] " . $message;
-
-        return $message;
-    }
-
-    private function writeLog($data)
-    {
-        try
-        {
-            $level  = $data['level'];
-            $logger = new Logger('logx');
-
-            $logFormat = "[%datetime%]%message%\n\n";
-            $formatter = new LineFormatter($logFormat);
-
-            $logFile = storage_path() . "/logs/logx-{$level}.log";
-
-            $daily = config('logx.daily');
-
-            if ($daily)
-            {
-                $handler = new RotatingFileHandler($logFile);
-            }
-            else
-            {
-                $handler = new StreamHandler($logFile);
-            }
-
-            // format
-            $handler->setFormatter($formatter);
-
-            // handler
-            if (!empty($logger->getHandlers()))
-            {
-                $logger->popHandler();
-            }
-            // set handler
-            $logger->pushHandler($handler);
-
-            // put log
-            $message = $this->getMessage($data);
-            $logger->{$level}($message);
-        }
-        catch (\Exception $e)
-        {
-        }
     }
 }
