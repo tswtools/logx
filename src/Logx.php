@@ -64,7 +64,7 @@ class Logx
                     $line    = self::$msInstance->mLine;
                     $message = self::$msInstance->mMessage;
 
-                    $message = "[{$ip}[{{$class}::{{$method}][{{$line}] " . $message;
+                    $message = "[{$ip}[{$class}::{$method}][{$line}] " . $message;
                     self::$msInstance->mLogger->{$level}($message);
                 }
 
@@ -90,7 +90,7 @@ class Logx
     {
         try
         {
-            $logFile  = storage_path(). "/logs/{$this->mLevel}.log";
+            $logFile  = storage_path(). "/logs/logx-{$this->mLevel}.log";
 
             if($this->mDaily > 0)
             {

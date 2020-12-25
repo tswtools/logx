@@ -5,7 +5,7 @@
 [![Build Status][ico-travis]][link-travis]
 
 
-Output log to file for laravel. Take a look at [contributing.md](contributing.md) to see a to do list.
+Record the log, display the class name and method name in the log, at the same time, it can conveniently display all kinds of data including JSON, array, etc. Take a look at [contributing.md](contributing.md) to see a to do list.
 
 ## Installation
 
@@ -22,6 +22,7 @@ php artisan vendor:publish --provider="Tswtools\Logx\LogxServiceProvider"
 ```
 
 #Config
+Filters allow you to filter specified classes or methods
 ``` bash
 Specify the IP address that can be recorded
 config/logx/ip:
@@ -34,6 +35,12 @@ include : XxxxController,XyyyController::*,*::index,show
 exclude : XxxxController,XxxxController::*,*::index,show
 
 '*' means that every class or method  is OK
+```
+
+#example
+``` bash
+[2020-12-25 13:09:50][127.0.0.1[TestController::index][26] "data1":{"a":1,"b":2}
+[2020-12-25 13:10:36][127.0.0.1[TestController::index][25] "data2":[{"a":1,"b":2}]
 ```
 
 ## Change log
